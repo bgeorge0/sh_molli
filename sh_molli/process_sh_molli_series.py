@@ -13,13 +13,29 @@ def do_fitting(x,y):
 
 def process_folder(path):
 	files = os.listdir(path)
+	time = np.zeros((len(files)))
 	inv_time = np.zeros((len(files)))
+	img_comments = np.zeros((len(files)))
 	for i, file in enumerate(files):
 		dcm = pydicom.read_file(os.path.join(path,file))
 		if i == 0:
 			images = np.zeros((dcm.pixel_array.shape[0], dcm.pixel_array.shape[0], len(files)))
 		images[:,:,i] = dcm.pixel_array
-		inv_time[i] = float(dcm.ImageComments.split()[1])
+		time[i] = dcm.TriggerTime
+		inv_time[i] = dcm.InversionTime
+		img_comments[i] = float(dcm.ImageComments.split()[1])
+	
+	rngs = [time.max() - time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
+	ind = rngs.index(max(rngs))
+	if ind == 0:
+		print('time')
+		inv_time = time
+	elif ind == 1:
+		print('inv_time')
+		inv_time = inv_time
+	elif ind == 2:
+		print('img_comments')
+		inv_time = img_comments
 		
 	sort_inds = np.argsort(inv_time)
 	sorted_images = np.zeros(images.shape)

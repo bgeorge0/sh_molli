@@ -13,7 +13,6 @@ setup(name='sh_molli',
       packages=['sh_molli'],
       install_requires=[
           'pydicom',
-          'os',
           'numpy',
           'scipy',
           'tqdm',
