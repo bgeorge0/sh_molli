@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='sh_molli',
-	  version='0.0.4',
+	  version='0.0.5',
       description='Package to process (sh)MOLLI MRI data',
       long_description=readme(),
       author='Ben George',
