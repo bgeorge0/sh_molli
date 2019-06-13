@@ -1,0 +1,3 @@
+[console_scripts]
+sh_molli = sh_molli.command_line:main
+
