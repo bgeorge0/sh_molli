@@ -1,7 +1,0 @@
-pydicom
-os
-numpy
-scipy
-tqdm
-PIL
-matplotlib
