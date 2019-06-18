@@ -4,14 +4,18 @@ import numpy as np
 import tqdm
 import PIL
 
-def do_fitting(x,y):
-	try:
-		return exp_fit(x,y)
-	except np.linalg.LinAlgError as e:
-		print(e)
-		return [-1, -1, -1, -1]
+def do_fitting(x,y,method='fast'):
+	if method == 'slow':
+		return my_fit(x,y)
+	else:
+		try:
+			return exp_fit(x,y)
+		except np.linalg.LinAlgError as e:
+			print(e)
+			return [-1, -1, -1, -1]
 
-def process_folder(path):
+def process_folder(path, method):
+	print(method)
 	files = os.listdir(path)
 	trigger_time = np.zeros((len(files)))
 	inv_time = np.zeros((len(files)))
@@ -72,10 +76,10 @@ def process_folder(path):
 			vals = sorted_images[x,y,:]
 			if (vals.max() - vals.min()) > 100:
 				#print(vals)
-				out0 = do_fitting(inv_time, mask0 * vals)
-				out1 = do_fitting(inv_time, mask1 * vals)
-				out2 = do_fitting(inv_time, mask2 * vals)
-				out3 = do_fitting(inv_time, mask3 * vals)
+				out0 = do_fitting(inv_time, mask0 * vals, method)
+				out1 = do_fitting(inv_time, mask1 * vals, method)
+				out2 = do_fitting(inv_time, mask2 * vals, method)
+				out3 = do_fitting(inv_time, mask3 * vals, method)
 				sse = [out0[3], out1[3], out2[3], out3[3]]
 				best_fit_ind = sse.index(min(sse))
 				if best_fit_ind == 0:
@@ -101,7 +105,7 @@ def display(t1map):
 	plt.show()
 
 def __help_string():
-	return 'process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag>'
+	return 'process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method>'
 
 def __main__():
 	import sys
@@ -110,9 +114,10 @@ def __main__():
 	inputfolder = None
 	outputfilename = None
 	showImage = False
+	method = 'fast'
 		
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],"hi:o:p:",["inputfolder=","outputfilename=","plot="])
+		opts, args = getopt.getopt(sys.argv[1:],"hi:o:p:m:",["inputfolder=","outputfilename=","plot=","method="])
 	except getopt.GetoptError:
 		print(__help_string())
 		sys.exit(2)
@@ -131,9 +136,11 @@ def __main__():
 				outputfilename = arg
 			elif opt in ("-p", "--plot"):
 				showImage = arg
+			elif opt in ("-m", "--method"):
+				method = arg.lower()
 	
 	if inputfolder is not None:
-		t1map = process_folder(inputfolder)
+		t1map = process_folder(inputfolder, method)
 	if outputfilename is not None:
 		write_image(t1map, outputfilename)
 	if showImage:
