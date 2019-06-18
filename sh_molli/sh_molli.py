@@ -1,7 +1,6 @@
 import pydicom
 import os
 import numpy as np
-#from sh_molli_fit import *
 import tqdm
 import PIL
 
@@ -9,11 +8,12 @@ def do_fitting(x,y):
 	try:
 		return exp_fit(x,y)
 	except np.linalg.LinAlgError as e:
+		print(e)
 		return [-1, -1, -1, -1]
 
 def process_folder(path):
 	files = os.listdir(path)
-	time = np.zeros((len(files)))
+	trigger_time = np.zeros((len(files)))
 	inv_time = np.zeros((len(files)))
 	img_comments = np.zeros((len(files)))
 	for i, file in enumerate(files):
@@ -22,7 +22,7 @@ def process_folder(path):
 			images = np.zeros((dcm.pixel_array.shape[0], dcm.pixel_array.shape[0], len(files)))
 		images[:,:,i] = dcm.pixel_array
 		try:
-			time[i] = dcm.TriggerTime
+			trigger_time[i] = dcm.TriggerTime
 		except:
 			pass
 		try:
@@ -34,16 +34,16 @@ def process_folder(path):
 		except:
 			pass
 	
-	rngs = [time.max() - time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
+	rngs = [trigger_time.max() - trigger_time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
 	ind = rngs.index(max(rngs))
 	if ind == 0:
-		print('time')
-		inv_time = time
+		print('Trigger Time')
+		inv_time = trigger_time
 	elif ind == 1:
-		print('inv_time')
+		print('Inversion Time')
 		inv_time = inv_time
 	elif ind == 2:
-		print('img_comments')
+		print('Image Comments')
 		inv_time = img_comments
 		
 	sort_inds = np.argsort(inv_time)
@@ -71,6 +71,7 @@ def process_folder(path):
 			#print(y)
 			vals = sorted_images[x,y,:]
 			if (vals.max() - vals.min()) > 100:
+				#print(vals)
 				out0 = do_fitting(inv_time, mask0 * vals)
 				out1 = do_fitting(inv_time, mask1 * vals)
 				out2 = do_fitting(inv_time, mask2 * vals)
@@ -85,6 +86,8 @@ def process_folder(path):
 					out_array[x][y] = out2[2] * ((out2[1] / out2[0]) - 1)
 				elif best_fit_ind == 3:
 					out_array[x][y] = out3[2] * ((out3[1] / out3[0]) - 1)
+				#if out_array[x][y] < 0:
+				#	out_array[x][y] = 0
 	return out_array
 
 def write_image(t1map, filename):
@@ -93,7 +96,8 @@ def write_image(t1map, filename):
 
 def display(t1map):
 	from matplotlib import pyplot as plt
-	plt.imshow(t1map)
+	plt.imshow(t1map, vmin=0, vmax=2000)
+	plt.colorbar()
 	plt.show()
 
 def __help_string():
