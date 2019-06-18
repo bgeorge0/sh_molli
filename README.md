@@ -10,7 +10,7 @@ Two possible methods for processing the data are available.
 
 The difference between the two methods is very little as demonstrated in the figure below.
 
-![fast_slow comparison](fast_slow.tiff "Comparison of fast and slow fitting methods")
+![fast_slow comparison](fast_slow.tif "Comparison of fast and slow fitting methods")
 
 Any pixels/voxels where the max value is less than 100 is skipped. NB: For this version, data is processed top-left to bottom-right in the image. As images are often empty around the edges, this means the the processing is 'fast' to start with as each pixel is basically skipped, then slows down as the true data is processed, then speeds up again at the end.
 
