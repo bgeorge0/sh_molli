@@ -21,9 +21,18 @@ def process_folder(path):
 		if i == 0:
 			images = np.zeros((dcm.pixel_array.shape[0], dcm.pixel_array.shape[0], len(files)))
 		images[:,:,i] = dcm.pixel_array
-		time[i] = dcm.TriggerTime
-		inv_time[i] = dcm.InversionTime
-		img_comments[i] = float(dcm.ImageComments.split()[1])
+		try:
+			time[i] = dcm.TriggerTime
+		except:
+			pass
+		try:
+			inv_time[i] = dcm.InversionTime
+		except:
+			pass
+		try:
+			img_comments[i] = float(dcm.ImageComments.split()[1])
+		except:
+			pass
 	
 	rngs = [time.max() - time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
 	ind = rngs.index(max(rngs))
