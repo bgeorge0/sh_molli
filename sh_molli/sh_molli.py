@@ -4,6 +4,9 @@ import numpy as np
 import tqdm
 import PIL
 
+class UnknowDicomTagException(Exception):
+	pass
+
 def do_fitting(x,y,method='fast'):
 	if method == 'slow':
 		return my_fit(x,y)
@@ -14,7 +17,7 @@ def do_fitting(x,y,method='fast'):
 			print(e)
 			return [-1, -1, -1, -1]
 
-def process_folder(path, method):
+def process_folder(path, method='fast', dcmtag=None, disable_TQDM=False):
 	print(method)
 	files = os.listdir(path)
 	trigger_time = np.zeros((len(files)))
@@ -38,8 +41,12 @@ def process_folder(path, method):
 		except:
 			pass
 	
-	rngs = [trigger_time.max() - trigger_time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
-	ind = rngs.index(max(rngs))
+	if dcmtag is None:
+		rngs = [trigger_time.max() - trigger_time.min(), inv_time.max() - inv_time.min(), img_comments.max() - img_comments.min()]
+		ind = rngs.index(max(rngs))
+	else:
+		ind = dcmtag
+	
 	if ind == 0:
 		print('Trigger Time')
 		inv_time = trigger_time
@@ -49,6 +56,8 @@ def process_folder(path, method):
 	elif ind == 2:
 		print('Image Comments')
 		inv_time = img_comments
+	else:
+		raise UnknowDicomTag
 		
 	sort_inds = np.argsort(inv_time)
 	sorted_images = np.zeros(images.shape)
@@ -69,7 +78,7 @@ def process_folder(path, method):
 	
 	x_size, y_size, _ = images.shape
 	out_array = np.zeros((x_size,y_size))
-	for x in tqdm.tqdm(range(x_size)):
+	for x in tqdm.tqdm(range(x_size), disable=disable_TQDM):
 		for y in range(y_size):
 			#print(x)
 			#print(y)
@@ -90,8 +99,8 @@ def process_folder(path, method):
 					out_array[x][y] = out2[2] * ((out2[1] / out2[0]) - 1)
 				elif best_fit_ind == 3:
 					out_array[x][y] = out3[2] * ((out3[1] / out3[0]) - 1)
-				#if out_array[x][y] < 0:
-				#	out_array[x][y] = 0
+				if out_array[x][y] < 0:
+					out_array[x][y] = 0
 	return out_array
 
 def write_image(t1map, filename):
@@ -100,12 +109,24 @@ def write_image(t1map, filename):
 
 def display(t1map):
 	from matplotlib import pyplot as plt
-	plt.imshow(t1map, vmin=0, vmax=2000)
+	plt.imshow(t1map, vmin=0, vmax=3000)
 	plt.colorbar()
 	plt.show()
 
 def __help_string():
-	return 'process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method>'
+	return 'process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>\n' \
+			'	intputfile is a path to a folder containging DICOM images from a shMOLLI or MOLLI series\n' \
+			'		NB: likely to fail if other files are in the directory\n' \
+			' 	outputfilename should be a string of the format:\n' \
+			'			filename.EXT where EXT is any extension understood by PIL\n' \
+			'		NB: careful of bit-depth of output. TIFF is OK.\n' \
+			'	method {''fast'', ''slow''}\n' \
+			'		fast = numerical methods fit 	- less accurate\n' \
+			'		slow = scipy.curve_fit method	- slower\n' \
+			'	dicom_tag {0, 1, 2}\n' \
+			'		0 = TriggerTime\n' \
+			'		1 = InversionTime\n' \
+			'		2 = ImageComments'
 
 def __main__():
 	import sys
@@ -117,7 +138,7 @@ def __main__():
 	method = 'fast'
 		
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],"hi:o:p:m:",["inputfolder=","outputfilename=","plot=","method="])
+		opts, args = getopt.getopt(sys.argv[1:],"hi:o:p:m:t:",["inputfolder=","outputfilename=","plot=","method=","dicom_tag="])
 	except getopt.GetoptError:
 		print(__help_string())
 		sys.exit(2)
@@ -138,9 +159,11 @@ def __main__():
 				showImage = arg
 			elif opt in ("-m", "--method"):
 				method = arg.lower()
+			elif opt in ("-t", "--dicom_tag"):
+				dcmtag = int(arg)
 	
 	if inputfolder is not None:
-		t1map = process_folder(inputfolder, method)
+		t1map = process_folder(inputfolder, method, dcmtag)
 	if outputfilename is not None:
 		write_image(t1map, outputfilename)
 	if showImage:
