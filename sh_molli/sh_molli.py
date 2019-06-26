@@ -114,7 +114,7 @@ def display(t1map):
 	plt.show()
 
 def __help_string():
-	return 'process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>\n' \
+	return 'sh_molli.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>\n' \
 			'	intputfile is a path to a folder containging DICOM images from a shMOLLI or MOLLI series\n' \
 			'		NB: likely to fail if other files are in the directory\n' \
 			' 	outputfilename should be a string of the format:\n' \

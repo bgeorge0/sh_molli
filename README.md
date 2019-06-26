@@ -19,20 +19,26 @@ Any pixels/voxels where the max value is less than 100 is skipped. NB: For this 
 As module
 ```python
 > pip3 install sh_molli
-> process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method>
+> sh_molli.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>
 ```
 
 In code
 ```python
 > python3
 > import sh_molli.sh_molli as sh
-> im = sh.process_folder(dir,method='fast')
+> im.process_folder(path, method='fast', dcmtag=1)
 ```
 
--i - input folder must be a path containing DICOM images only Can process data based on 'Inversion Time' being stored in dcm.TriggerTime, dcm.InversionTime and dcm.ImageComments
-
--o - output file name. Uses PIL for image writing, so supports all formats that PIL understands. Recommended using example.tiff to ensure that large values are not cropped
-
--p - plot flat (1, 0 or not present). If 1, the image will be displayed using matplotlib once the data is processed. Colorbar is cropped to 0-2000 range, sensible values for human tissue.
-
--m - method. ('fast' or 'slow'). See above.
+process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>
+	intputfile is a path to a folder containging DICOM images from a shMOLLI or MOLLI series
+		NB: likely to fail if other files are in the directory
+ 	outputfilename should be a string of the format:
+			filename.EXT where EXT is any extension understood by PIL
+		NB: careful of bit-depth of output. TIFF is OK.
+	method {fast, slow}
+		fast = numerical methods fit 	- less accurate
+		slow = scipy.curve_fit method	- slower
+	dicom_tag {0, 1, 2}
+		0 = TriggerTime
+		1 = InversionTime
+		2 = ImageComments
