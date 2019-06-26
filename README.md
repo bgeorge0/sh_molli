@@ -29,6 +29,7 @@ In code
 > im.process_folder(path, method='fast', dcmtag=1)
 ```
 
+```
 process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -m <method> -d <dicom_tag>
 	intputfile is a path to a folder containging DICOM images from a shMOLLI or MOLLI series
 		NB: likely to fail if other files are in the directory
@@ -42,3 +43,4 @@ process_sh_molli_series.py -i <inputfolder> -o <outputfilename> -p <plot_flag> -
 		0 = TriggerTime
 		1 = InversionTime
 		2 = ImageComments
+```
